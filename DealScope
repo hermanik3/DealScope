@@ -1,0 +1,482 @@
+DealScope/
+import { useState, FormEvent } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Mail, Phone, MapPin, ArrowRight, CheckCircle2, Menu } from "lucide-react";
+
+// Affiliate Link Builder – uses backend redirect route: /api/go/[retailer]/[id]
+const buildAffiliateLink = (retailer: string, productId: string) => {
+  return `/api/go/${retailer}/${productId}`;
+};
+
+export default function Site() {
+  const nav = [
+    { id: "home", label: "Home" },
+    { id: "about", label: "About" },
+    { id: "services", label: "Why DealScope" },
+    { id: "pro", label: "Pro" },
+    { id: "extension", label: "Extension" },
+    { id: "testimonials", label: "Testimonials" },
+    { id: "contact", label: "Contact" },
+  ];
+
+  const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSearch(e: FormEvent) {
+    e.preventDefault();
+    if (!searchTerm.trim()) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Search failed");
+      }
+      // In this preview-only version, we do not render dynamic results yet.
+      // This keeps the UI simple and avoids extra complexity.
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Search failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-white text-slate-800">
+      {/* Top Bar */}
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-emerald-100">
+        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-2xl bg-slate-900 flex items-center justify-center text-[0.6rem] font-semibold tracking-[0.25em] text-emerald-300">
+              DS
+            </div>
+            <span className="font-semibold tracking-tight">DealScope</span>
+          </div>
+          <nav className="hidden md:flex items-center gap-6">
+            {nav.map((item) => (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                className="text-sm hover:text-slate-900 transition-colors"
+              >
+                {item.label}
+              </a>
+            ))}
+            <a href="#home">
+              <Button className="rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white border-none">
+                Start Searching
+              </Button>
+            </a>
+          </nav>
+          <button
+            className="md:hidden p-2"
+            onClick={() => setOpen(!open)}
+            aria-label="Toggle menu"
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+        </div>
+        {open && (
+          <div className="md:hidden border-t">
+            <div className="mx-auto max-w-6xl px-4 py-3 grid gap-3">
+              {nav.map((item) => (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  className="text-sm"
+                  onClick={() => setOpen(false)}
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* Hero */}
+      <section id="home" className="relative overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-emerald-50 via-white to-white" />
+        <div className="mx-auto max-w-6xl px-4 py-20 grid lg:grid-cols-2 gap-10 items-center">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-4xl md:text-5xl font-semibold tracking-tight leading-tight">
+              Find anything at the lowest price online
+            </h1>
+            <p className="mt-4 text-slate-600 max-w-xl">
+              DealScope is a sale-focused product search engine that will scan trusted retailers to find
+              the best live price and send you there in one click.
+            </p>
+
+            {/* Search bar */}
+            <form className="mt-6 flex flex-col gap-3" onSubmit={handleSearch}>
+              <div className="flex items-center gap-2 rounded-2xl border px-3 py-2 shadow-sm bg-white">
+                <input
+                  placeholder="Search any product..."
+                  className="flex-1 border-none outline-none text-sm bg-transparent"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <Button
+                  size="sm"
+                  className="rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white border-none"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? "Searching..." : "Search"}
+                </Button>
+              </div>
+              <p className="text-xs text-slate-500">
+                Example: AirPods Pro, 4K TV, running shoes, gaming chair
+              </p>
+            </form>
+
+            {error && (
+              <p className="mt-4 text-sm text-red-600 max-w-xl">{error}</p>
+            )}
+
+            <ul className="mt-6 grid gap-2 text-sm text-slate-600">
+              {[
+                "We scan top retailers to find the best live price.",
+                "You see real discounts, not fake was-$999 marketing.",
+                "In one click, you go straight to the lowest-priced offer.",
+              ].map((t) => (
+                <li key={t} className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" /> {t}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="relative"
+          >
+            <div className="aspect-video w-full rounded-2xl bg-slate-100 shadow-inner flex flex-col justify-center p-5">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-500 mb-2">
+                Sample result
+              </p>
+              <div className="flex items-center justify-between text-sm mb-3">
+                <span className="font-medium text-slate-800">Wireless Headphones Pro</span>
+                <span className="text-xs text-emerald-600 font-semibold">Lowest price</span>
+              </div>
+              <div className="grid gap-2 text-xs text-slate-600">
+                <div className="flex items-center justify-between">
+                  <span>Retailer A</span>
+                  <span className="line-through">$249.99</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Retailer B</span>
+                  <span className="line-through">$219.99</span>
+                </div>
+                <div className="flex items-center justify-between font-semibold text-slate-900">
+                  <span>Retailer C (DealScope pick)</span>
+                  <span>$189.99</span>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                className="mt-4 rounded-2xl w-full bg-emerald-600 hover:bg-emerald-500 text-white border-none"
+                asChild
+              >
+                <a
+                  href={buildAffiliateLink("amazon", "SAMPLE_ID")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Go to lowest price <ArrowRight className="ml-2 h-4 w-4" />
+                </a>
+              </Button>
+            </div>
+            <div className="absolute -bottom-6 -left-6 hidden md:block h-28 w-28 rounded-3xl bg-slate-900/90" />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* About */}
+      <section id="about" className="mx-auto max-w-6xl px-4 py-16">
+        <div className="grid lg:grid-cols-3 gap-8 items-start">
+          <div className="lg:col-span-2">
+            <h2 className="text-2xl font-semibold tracking-tight">About DealScope</h2>
+            <p className="mt-3 text-slate-600">
+              DealScope is a sale-only product search engine designed to help shoppers quickly find the
+              lowest price on anything online. We compare real prices from multiple retailers and highlight
+              true deals, so you do not waste time opening 20 tabs to check everything yourself.
+            </p>
+          </div>
+          <Card className="rounded-2xl">
+            <CardHeader>
+              <CardTitle>Fast facts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="grid gap-2 text-sm text-slate-600">
+                <li>• Founded: 2025</li>
+                <li>• HQ: Davenport, IA</li>
+                <li>• Focus: Lowest-price deal search</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Services / Why DealScope */}
+      <section id="services" className="bg-slate-50">
+        <div className="mx-auto max-w-6xl px-4 py-16">
+          <h2 className="text-2xl font-semibold tracking-tight">Why shoppers use DealScope</h2>
+          <p className="mt-2 text-slate-600 max-w-2xl">
+            Each of these features is designed to save you money, time, and endless tab-switching while
+            you shop online.
+          </p>
+          <div className="mt-8 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                title: "Lowest price search",
+                desc: "Instantly find the best price for any product across top retailers.",
+              },
+              {
+                title: "Verified deals only",
+                desc: "We filter out fake discounts and highlight only real price drops.",
+              },
+              {
+                title: "One-click buy",
+                desc: "Jump straight to the lowest-priced retailer with a single tap.",
+              },
+              {
+                title: "Category browsing",
+                desc: "Explore trending deals in electronics, fashion, home, and more.",
+              },
+              {
+                title: "Price tracking",
+                desc: "Save items and get notified when the price drops (coming in DealScope Pro).",
+              },
+              {
+                title: "Retailer transparency",
+                desc: "See who sells it, for how much, and how it compares, instantly.",
+              },
+            ].map((s) => (
+              <Card key={s.title} className="rounded-2xl h-full">
+                <CardHeader>
+                  <CardTitle>{s.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-slate-600 text-sm">{s.desc}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pro / Subscriptions */}
+      <section id="pro" className="mx-auto max-w-6xl px-4 py-16">
+        <div className="grid lg:grid-cols-2 gap-8 items-start">
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight">DealScope Pro – price alerts</h2>
+            <p className="mt-3 text-slate-600">
+              DealScope Pro will let power shoppers track the products they care about and get notified the
+              moment prices drop. No more checking the same pages every day, we will watch them for you.
+            </p>
+            <ul className="mt-4 grid gap-2 text-sm text-slate-600">
+              <li>• Track multiple products across Amazon, Walmart, Best Buy, and more.</li>
+              <li>• Get email alerts when a price drops below your target.</li>
+              <li>• View simple price history so you know if it is really a good deal.</li>
+            </ul>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Button className="rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white border-none" disabled>
+                Join Pro waitlist – coming soon
+              </Button>
+              <p className="text-xs text-slate-500 max-w-xs">
+                DealScope Pro will launch with a free trial and simple monthly pricing for serious deal hunters.
+              </p>
+            </div>
+          </div>
+          <Card className="rounded-2xl">
+            <CardContent className="pt-6 text-sm text-slate-600 grid gap-3">
+              <div className="rounded-xl border border-dashed p-3 text-xs bg-slate-50">
+                <p className="font-medium mb-1">Example watchlist</p>
+                <ul className="space-y-1">
+                  <li>• 55 inch 4K TV – target price $499</li>
+                  <li>• Running shoes – target price $79</li>
+                  <li>• Wireless earbuds – target price $99</li>
+                </ul>
+                <p className="mt-2 text-[11px] text-slate-500">
+                  DealScope Pro will periodically re-check these items and email you as soon as any of them
+                  drop below your target price.
+                </p>
+              </div>
+              <p>
+                Behind the scenes, DealScope Pro will use the same search engine that powers this site to refresh
+                prices on a schedule and compare them against your alerts.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Extension */}
+      <section id="extension" className="mx-auto max-w-6xl px-4 py-16">
+        <div className="grid lg:grid-cols-2 gap-8 items-center">
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight">DealScope Chrome extension</h2>
+            <p className="mt-3 text-slate-600">
+              Soon, you will be able to bring DealScope with you anywhere you shop online. Our Chrome extension
+              will detect the product you are viewing and check if there is a lower price at other trusted
+              retailers, then send you there in one click via our affiliate-powered redirect system.
+            </p>
+            <ul className="mt-4 grid gap-2 text-sm text-slate-600">
+              <li>• Works on Amazon, Walmart, Best Buy, and more.</li>
+              <li>• Shows a small DealScope banner only when a real deal is found.</li>
+              <li>• Uses the same lowest-price engine as this website.</li>
+            </ul>
+            <Button className="mt-6 rounded-2xl bg-slate-900 text-white" disabled>
+              Chrome extension – coming soon
+            </Button>
+          </div>
+          <Card className="rounded-2xl">
+            <CardContent className="pt-6">
+              <p className="text-sm text-slate-600">
+                Example: you are viewing wireless headphones on Amazon. DealScope quietly checks other stores in the
+                background and lets you know if Walmart, Best Buy, or another retailer beats the price, with no extra work.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section id="testimonials" className="mx-auto max-w-6xl px-4 py-16">
+        <h2 className="text-2xl font-semibold tracking-tight">What users say</h2>
+        <div className="mt-8 grid md:grid-cols-2 gap-6">
+          <Card className="rounded-2xl">
+            <CardContent className="pt-6">
+              <p className="text-slate-700">
+                "DealScope saved me hours of searching and helped me grab my new laptop at the lowest price.
+                Now I check here before I buy anything."
+              </p>
+              <p className="mt-4 text-sm text-slate-500">— Sarah M., frequent online shopper</p>
+            </CardContent>
+          </Card>
+          <Card className="rounded-2xl">
+            <CardContent className="pt-6">
+              <p className="text-slate-700">
+                "I love how simple it is. One search, I see the real deals, click once, and I am done.
+                No more 20 tabs open trying to compare prices."
+              </p>
+              <p className="mt-4 text-sm text-slate-500">— Daniel K., deal hunter</p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Contact */}
+      <section id="contact" className="bg-slate-50">
+        <div className="mx-auto max-w-6xl px-4 py-16">
+          <h2 className="text-2xl font-semibold tracking-tight">Get in touch</h2>
+          <p className="mt-2 text-slate-600 max-w-2xl">
+            Have a question, partnership idea, or want to integrate DealScope into your platform?
+            Reach out here.
+          </p>
+          <div className="mt-8 grid lg:grid-cols-2 gap-8">
+            <form
+              onSubmit={(e) => e.preventDefault()}
+              className="grid gap-4 rounded-2xl bg-white p-6 shadow-sm border"
+            >
+              <div className="grid gap-2">
+                <label htmlFor="name" className="text-sm font-medium">
+                  Name
+                </label>
+                <input
+                  id="name"
+                  placeholder="Your name"
+                  className="h-11 rounded-xl border px-3 outline-none"
+                />
+              </div>
+              <div className="grid gap-2">
+                <label htmlFor="email" className="text-sm font-medium">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  placeholder="you@example.com"
+                  className="h-11 rounded-xl border px-3 outline-none"
+                />
+              </div>
+              <div className="grid gap-2">
+                <label htmlFor="message" className="text-sm font-medium">
+                  Message
+                </label>
+                <textarea
+                  id="message"
+                  rows={5}
+                  placeholder="Tell us how you would like to work with DealScope"
+                  className="rounded-xl border p-3 outline-none"
+                />
+              </div>
+              <Button
+                type="submit"
+                className="rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white border-none"
+              >
+                Send
+              </Button>
+              <p className="text-xs text-slate-500">This demo form does not submit anywhere yet.</p>
+            </form>
+            <div className="grid gap-4 content-start">
+              <Card className="rounded-2xl">
+                <CardContent className="pt-6 grid gap-3 text-slate-700">
+                  <p className="flex items-center gap-2">
+                    <Mail className="h-4 w-4" /> hello@dealscope.com
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <Phone className="h-4 w-4" /> (555) 123-4567
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" /> Davenport, IA
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t">
+        <div className="mx-auto max-w-6xl px-4 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-slate-500">
+            © {new Date().getFullYear()} DealScope. All rights reserved.
+          </p>
+          <div className="flex items-center gap-6 text-sm">
+            <a href="#about" className="hover:underline">
+              About
+            </a>
+            <a href="#services" className="hover:underline">
+              Why DealScope
+            </a>
+            <a href="#pro" className="hover:underline">
+              Pro
+            </a>
+            <a href="#extension" className="hover:underline">
+              Extension
+            </a>
+            <a href="#contact" className="hover:underline">
+              Contact
+            </a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+  
